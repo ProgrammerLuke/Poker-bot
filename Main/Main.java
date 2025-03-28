@@ -37,6 +37,7 @@ public class Main {
         //actual gameplay
         while(players.length > 1){
             dealer.shuffle();
+            System.out.println("\n\n\nBeginning New Game.....\n\n\n");
             newGame();
         }
     }
@@ -55,13 +56,24 @@ public class Main {
 
         //deal cards to each player
         for(int i = 0; i < players.length; i++){
+            //test if player is null, and continue if so
+            if(players[i] == null){continue;}
+            System.out.println("Dealing cards to Player " + i);
             playerCards[i] = dealer.deal(2);
             players[i].giveHand(playerCards[i]);
         }
 
         //blinds
         //default is 10/20
-        for(int i = 0; i < 2; i++){
+        byte j = 2;
+        for(int i = 0; i < j; i++){
+            //test if player is null, and continue if so
+            if(players[i] == null && j < 6){
+                j++;
+                continue;
+            }else if (players[i] == null && j >= 6){
+                throw new IllegalArgumentException("No legal players to blind. Game over.");
+            }
             bet = players[i+blindPlayer].blind(BB - blindMod);
             blindMod = 0;
             pot+=bet;
@@ -75,6 +87,7 @@ public class Main {
         table[0] = dealer.deal(1)[0];
         table[1] = dealer.deal(1)[0];
         table[2] = dealer.deal(1)[0];
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2]);
             //give the players the flop
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -89,6 +102,7 @@ public class Main {
 
         //do the turn and then give the player the turn card
         table[3] = dealer.deal(1)[0];
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3]);
             //give the players the turn
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -103,6 +117,7 @@ public class Main {
 
         //do the river and then give the player the river card
         table[4] = dealer.deal(1)[0];
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4]);
             //give the players the river
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -116,7 +131,7 @@ public class Main {
         updatePot();
 
         //showdown
-        //showdown();
+        showdown();
 
 
     }
@@ -139,19 +154,24 @@ public class Main {
                 if (bet > highbet){//test if it is a raise
                     highbet = bet;
                     bets[botcount] = bet;
+                    System.out.println("Player " + botcount + " raised to " + highbet);
                 }else if(bet == highbet){//test if it is a call
                     bets[botcount] = bet;
+                    System.out.println("Player " + botcount + " called.");
                 }else if(bet < highbet && bet > 0 && player.getBalance() == 0){//all in
                     bets[botcount] = bet;
                     player.blind(player.getBalance());//this force removes all money in the bot's balance
+                    System.out.println("Player " + botcount + " went all in.");
                 }else if(bet == -1){//test if it is a fold, and remove the player
                     player = null;
                     playerCards[botcount] = null;
                     bets[botcount] = bet;
+                    System.out.println("Player " + botcount + " folded.");
                 }else{//if the bet is invalid, the player folds
                     player = null;
                     playerCards[botcount] = null;
                     bets[botcount] = -1;
+                    System.out.println("Player " + botcount + " folded by invalid bet.");
                 }
             }
             botcount++;
@@ -201,7 +221,39 @@ public class Main {
     //function to do a showdown
 
     public static void showdown(){
-        evalHand(new String[]{});
+        int[] handStrength = new int[players.length];
+        //get each players hand strength
+        for(int i = 0; i < players.length; i++){
+            if (players[i] != null){
+                handStrength[i] = evalHand(playerCards[i]);
+            }
+        }
+
+        //find the highest hand strength
+        int max = handStrength[0];
+        int[] maxindex = new int[handStrength.length];
+        int maxes = 0;
+        for(int i = 1; i < handStrength.length; i++){
+            if(handStrength[i] > max){
+                max = handStrength[i];
+                maxindex[maxes] = i;
+                for(int j = 0; j < maxes; j++){
+                    maxindex[j] = 0;
+                }
+            }else if(handStrength[i] == max){
+                maxes++;
+                maxindex[maxes] = i;
+            }
+        }
+
+        //distribute the pot to the winners
+        for(int i = 0; i < maxindex.length; i++){
+            if((maxindex[i] != 0 && i != 0) || (maxindex[i] == 0 && i == 0)){
+                players[maxindex[i]].giveMoney(pot/(maxes + 1));
+                System.out.println("Player " + maxindex[i] + " Won " + pot/(maxes + 1));
+            }
+        }
+        
     }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

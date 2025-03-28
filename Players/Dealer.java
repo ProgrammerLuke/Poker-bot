@@ -6,7 +6,7 @@ import java.util.Collections;
 public class Dealer {
 
     //variables to be used in the rest of the code
-    private ArrayList<String> cards;
+    private ArrayList<String> cards = new ArrayList<String>();
     private char[] suits = {'c', 'd', 'h', 's'};
     private char[] values = {'2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'};
 
