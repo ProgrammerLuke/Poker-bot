@@ -8,7 +8,8 @@ import Players.Bots.BasicBot;
 public class Main {
     //players and dealers
     private static Dealer dealer = new Dealer();
-    private static BasicBot[] players = new BasicBot[6];
+    private static BasicBot[] Rplayers = new BasicBot[6];
+    private static BasicBot[] players;
 
     //game variables
     private static int BB = 20;
@@ -24,21 +25,44 @@ public class Main {
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        //main program
+    //main program
     public static void main(String[] args){
         //create players
-        players[0] = null;
-        players[1] = null;
-        players[2] = null;
-        players[3] = null;
-        players[4] = null;
-        players[5] = null;
+        Rplayers[0] = null;
+        Rplayers[1] = null;
+        Rplayers[2] = null;
+        Rplayers[3] = null;
+        Rplayers[4] = null;
+        Rplayers[5] = null;
 
         //actual gameplay
-        while(players.length > 1){
+        while(Rplayers[0] != null || Rplayers[1] != null || Rplayers[2] != null || Rplayers[3] != null || Rplayers[4] != null || Rplayers[5] != null){
+            int playercount = 0;
+            for(int i = 0; i < Rplayers.length; i++){
+                playercount += (Rplayers[i] == null ? 0 : 1);
+            }
+            if(playercount < 2){break;}
+
             dealer.shuffle();
             System.out.println("\n\n\nBeginning New Game.....\n\n\n");
             newGame();
+            //update players list
+            for(int i = 0; i < Rplayers.length; i++){
+                if(Rplayers[i] != null && Rplayers[i].getBalance() <= 0){Rplayers[i] = null;}
+            }
+        }
+
+        System.out.println("Game Over!");
+        byte j = 0;
+        for(int i = 0; i < Rplayers.length; i++){
+            if(Rplayers[i] != null){
+                j++;
+                System.out.println("Player " + i + " won!");
+            }
+        }
+
+        if(j == 0){
+            System.out.println("No legal players to win. Game Over by Default.");
         }
     }
 
@@ -53,6 +77,7 @@ public class Main {
         highbet = 0;
         bets = new int[] {-2, -2, -2, -2, -2, -2};
         bet = 0;
+        players = Rplayers.clone();
 
         //deal cards to each player
         for(int i = 0; i < players.length; i++){
