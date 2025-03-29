@@ -15,7 +15,7 @@ public class ExternalPlayer extends BasicBot{
     @Override
     public int bet(int call) {
         //get input for the bet
-        System.out.println("Enter your bet (C to see all cards, B to see other players bets, and M to see your balance): ");
+        System.out.println("Enter your bet (C to see all cards, B to see other players bets, and M to see your balance)\n" + call + " to call:  ");
         String bet = input.nextLine();
         int betAmount = 0;
         //convert the input to an integer, or give the requested data, then sets betAmount to bet(int call) through recursion.
@@ -44,19 +44,30 @@ public class ExternalPlayer extends BasicBot{
                 }
             
         }
+        //check the validity of the bet
+        if(betAmount >= call || betAmount == balance){
+            return betAmount;
+        }else if(betAmount < call){
+            System.out.println("You must bet at least " + call + " or your balance.");
+            betAmount = bet(call);
+        }else if(betAmount > balance){
+            System.out.println("Insufficient Funds. Please enter a smaller amount.");
+            betAmount = bet(call);
+        }
         return betAmount;
     }
 
     @Override
     public String[] getCards() {
-        // TODO Auto-generated method stub
+        // returns the players cards
         return cards;
         
     }
 
     @Override
     public void giveHand(String[] hand) {
-        // TODO Auto-generated method stub
+        // create the players hand
+        cards = hand;
         
     }
 
