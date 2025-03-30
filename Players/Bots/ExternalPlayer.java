@@ -54,6 +54,10 @@ public class ExternalPlayer extends BasicBot{
             System.out.println("Insufficient Funds. Please enter a smaller amount.");
             betAmount = bet(call);
         }
+        if(betAmount == balance){
+            System.out.println("Out of funds. ALL IN!");
+        }
+        balance -= betAmount;
         return betAmount;
     }
 
@@ -73,19 +77,18 @@ public class ExternalPlayer extends BasicBot{
 
     @Override
     public void givePlayers(int numPlayers) {
-        // TODO Auto-generated method stub
+        // Auto-generated method stub may not be needed. TBD
         
     }
 
     @Override
     public void givePlayerCards(String[] cards, int player) {
-        // TODO Auto-generated method stub
-        
+        //TODO: Do this here and implement in the Main program
     }
 
     @Override
     public void giveFlop(String[] flop) {
-        // TODO Auto-generated method stub
+        // give the player the flop
         table[0] = flop[0];
         table[1] = flop[1];
         table[2] = flop[2];
@@ -94,41 +97,48 @@ public class ExternalPlayer extends BasicBot{
 
     @Override
     public void giveTurn(String turn) {
-        // TODO Auto-generated method stub
+        // give the player the turn
         table[3] = turn;
         
     }
 
     @Override
     public void giveRiver(String river) {
-        // TODO Auto-generated method stub
+        // give the player the river
         table[4] = river;
         
     }
 
     @Override
     public void otherBets(int[] bets) {
-        // TODO Auto-generated method stub
+        // gives this player what other players have bet
         this.bets = bets;
         
     }
 
     @Override
     public void giveMoney(int money) {
-        // TODO Auto-generated method stub
+        // adds money to the players balance
+        balance += money;
         
     }
 
     @Override
     public int blind(int blindAmount) {
-        // TODO Auto-generated method stub
-        return 0;
+        // forces the blind
+        if(balance >= blindAmount){
+            balance -= blindAmount;
+            return blindAmount;
+        }else{
+            System.out.println("Out of funds. ALL IN!");
+            return blind(blindAmount);
+        }
         
     }
 
     @Override
     public int getBalance() {
-        // TODO Auto-generated method stub
-        return 0;
+        // returns the players balance
+        return balance;
     }
 }
