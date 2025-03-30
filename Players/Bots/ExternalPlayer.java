@@ -21,8 +21,8 @@ public class ExternalPlayer extends BasicBot{
         //convert the input to an integer, or give the requested data, then sets betAmount to bet(int call) through recursion.
         // This will allow a near infinite amount of rereading information
         switch(bet){
-            case "T":
-                System.out.println(cards[0] + cards[1] + table[0] + table[1] + table[2] + table[3] + table[4]);
+            case "C":
+                System.out.println(cards[0] + " " + cards[1] + " " + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4]);
                 betAmount = bet(call);
                 break;
             case "B":   
@@ -45,7 +45,7 @@ public class ExternalPlayer extends BasicBot{
             
         }
         //check the validity of the bet
-        if(betAmount >= call || betAmount == balance){
+        if(betAmount >= call || betAmount == balance || betAmount == -1){
             return betAmount;
         }else if(betAmount < call){
             System.out.println("You must bet at least " + call + " or your balance.");

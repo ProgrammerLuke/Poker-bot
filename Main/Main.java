@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import Players.Dealer;
 import Players.Bots.BasicBot;
+import Players.Bots.ExternalPlayer;
 
 public class Main {
     //players and dealers
@@ -18,7 +19,7 @@ public class Main {
     private static String[] table = new String[5];
     private static String[][] playerCards = new String[6][2];
     private static int highbet = 0;
-    private static int[] bets = new int[] {-2, -2, -2, -2, -2, -2};
+    private static int[] bets;
     private static int blindMod = BB/2;
     private static int bet = 0;
     private static int botcount = 0;
@@ -28,12 +29,17 @@ public class Main {
     //main program
     public static void main(String[] args){
         //create players
-        Rplayers[0] = null;
-        Rplayers[1] = null;
+        Rplayers[0] = new ExternalPlayer();
+        Rplayers[1] = new ExternalPlayer();
         Rplayers[2] = null;
         Rplayers[3] = null;
         Rplayers[4] = null;
         Rplayers[5] = null;
+
+        //give players money
+        for(int i = 0; i < Rplayers.length; i++){
+            if(Rplayers[i] != null){Rplayers[i].giveMoney(2000);}
+        }
 
         //actual gameplay
         while(Rplayers[0] != null || Rplayers[1] != null || Rplayers[2] != null || Rplayers[3] != null || Rplayers[4] != null || Rplayers[5] != null){
@@ -75,7 +81,7 @@ public class Main {
         blindMod = BB/2;
         pot = 0;
         highbet = 0;
-        bets = new int[] {-2, -2, -2, -2, -2, -2};
+        bets = new int[] {0, 0, 0, 0, 0, 0};
         bet = 0;
         players = Rplayers.clone();
 
@@ -167,15 +173,14 @@ public class Main {
     //if all players fold, then an IllegalArgumentException is thrown. Does not require try catch, because it should never do that
     public static boolean bettingRound(){
         botcount = 0;
-        for (BasicBot player : players){
-            if (player != null){
-
+        for (int i = 0; i < players.length; i++){
+            if (players[i] != null){
                 
                 //update the players catelog of bets
-                player.otherBets(bets);
+                players[i].otherBets(bets);
 
                 //now the bot decides its bet, and update the highbet and pot
-                bet = player.bet(highbet - bets[botcount]);
+                bet = players[i].bet(highbet - bets[botcount]);
                 if (bet > highbet){//test if it is a raise
                     highbet = bet;
                     bets[botcount] = bet;
@@ -183,17 +188,17 @@ public class Main {
                 }else if(bet == highbet){//test if it is a call
                     bets[botcount] = bet;
                     System.out.println("Player " + botcount + " called.");
-                }else if(bet < highbet && bet > 0 && player.getBalance() == 0){//all in
+                }else if(bet < highbet && bet > 0 && players[i].getBalance() == 0){//all in
                     bets[botcount] = bet;
-                    player.blind(player.getBalance());//this force removes all money in the bot's balance
+                    players[i].blind(players[i].getBalance());//this force removes all money in the bot's balance
                     System.out.println("Player " + botcount + " went all in.");
                 }else if(bet == -1){//test if it is a fold, and remove the player
-                    player = null;
+                    players[i] = null;
                     playerCards[botcount] = null;
                     bets[botcount] = bet;
                     System.out.println("Player " + botcount + " folded.");
                 }else{//if the bet is invalid, the player folds
-                    player = null;
+                    players[i] = null;
                     playerCards[botcount] = null;
                     bets[botcount] = -1;
                     System.out.println("Player " + botcount + " folded by invalid bet.");
@@ -203,8 +208,8 @@ public class Main {
         }
 
         //we need to test if everyon has called, and if not, we will do another betting round
-        for(int BET : bets){
-            if(BET < highbet){
+        for(int i = 0; i < bets.length; i++){
+            if(bets[i] < highbet && players[i] != null){
                 bettingRound();
                 break;
             }
