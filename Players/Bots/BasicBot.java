@@ -13,7 +13,6 @@ public abstract class BasicBot {
     //output methods
     public abstract int blind(int blindAmount);//forced blind bet
     public abstract int bet(int call);//function used to askt the bot to bet. fold is denoted as -1, check is denoted as 0
-    protected abstract int call();//implementation is not entirely necessary, but could be helpful
     public abstract int getBalance();//returns the players total balance. This is kept track of inside the bot, but an honor system will be necessary for keeping track of that
     public abstract String[] getCards();//returns the players cards. This will also be kept track of outside the bot, so no cheating or you are disqualified
 }
