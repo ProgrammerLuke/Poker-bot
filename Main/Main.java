@@ -16,13 +16,12 @@ public class Main {
     private static int BB = 20;
     private static int blindPlayer = 0;
     private static int pot = 0;
-    private static String[] table = new String[5];
+    private static String[] table = new String[]{"--", "--", "--", "--", "--"};
     private static String[][] playerCards = new String[6][2];
     private static int highbet = 0;
     private static int[] bets;
     private static int blindMod = BB/2;
     private static int bet = 0;
-    private static int botcount = 0;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -105,20 +104,21 @@ public class Main {
             }else if (players[i] == null && j >= 6){
                 throw new IllegalArgumentException("No legal players to blind. Game over.");
             }
-            bet = players[i+blindPlayer].blind(BB - blindMod);
+            bet = players[(i+blindPlayer)%players.length].blind(BB - blindMod);
+            bets[(i+blindPlayer)%players.length] = bet;
             blindMod = 0;
-            pot+=bet;
         }
         highbet = BB;
         //initial betting
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the flop and then give the player the flop cards
         table[0] = dealer.deal(1)[0];
         table[1] = dealer.deal(1)[0];
         table[2] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + "\n");
             //give the players the flop
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -128,12 +128,13 @@ public class Main {
         }
 
         //betting after flop
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the turn and then give the player the turn card
         table[3] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + "\n");
             //give the players the turn
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -143,12 +144,13 @@ public class Main {
         }
 
         //betting after turn
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the river and then give the player the river card
         table[4] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4] + "\n");
             //give the players the river
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -158,7 +160,7 @@ public class Main {
         }
 
         //betting after river
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
         updatePot();
 
         //showdown
@@ -171,46 +173,48 @@ public class Main {
 
     //betting round function. returns true if the round is to continue, or false if all players but one have folded.
     //if all players fold, then an IllegalArgumentException is thrown. Does not require try catch, because it should never do that
-    public static boolean bettingRound(){
-        botcount = 0;
-        for (int i = 0; i < players.length; i++){
-            if (players[i] != null){
+    public static boolean bettingRound(boolean nest){
+        for (int botcount = 0; botcount < players.length; botcount++){
+            if (players[botcount] != null && !(bets[botcount] == highbet && nest)){
                 
                 //update the players catelog of bets
-                players[i].otherBets(bets);
+                players[botcount].otherBets(bets);
 
                 //now the bot decides its bet, and update the highbet and pot
-                bet = players[i].bet(highbet - bets[botcount]);
-                if (bet > highbet){//test if it is a raise
-                    highbet = bet;
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " raised to " + highbet);
-                }else if(bet == highbet){//test if it is a call
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " called.");
-                }else if(bet < highbet && bet > 0 && players[i].getBalance() == 0){//all in
-                    bets[botcount] = bet;
-                    players[i].blind(players[i].getBalance());//this force removes all money in the bot's balance
-                    System.out.println("Player " + botcount + " went all in.");
+                bet = players[botcount].bet(highbet - bets[botcount]);
+                if (bet > highbet - bets[botcount]){//test if it is a raise
+                    highbet = bet + bets[botcount];
+                    bets[botcount] += bet;
+                    System.out.println("Player " + botcount + " raised to " + highbet + ".\n");
+                }else if(bet == highbet - bets[botcount]){//test if it is a call
+                    bets[botcount] += bet;
+                    System.out.println("Player " + botcount + " called.\n");
+                }else if(bet < highbet - bets[botcount] && bet > 0 && players[botcount].getBalance() == 0){//all in
+                    bets[botcount] += bet;
+                    players[botcount].blind(players[botcount].getBalance());//this force removes all money in the bot's balance
+                    System.out.println("Player " + botcount + " went all in.\n");
                 }else if(bet == -1){//test if it is a fold, and remove the player
-                    players[i] = null;
+                    players[botcount] = null;
                     playerCards[botcount] = null;
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " folded.");
+                    bets[botcount] += 0;
+                    System.out.println("Player " + botcount + " folded.\n");
+                    //test if the round will continue
+                    if(testPlayers()){return false;}
                 }else{//if the bet is invalid, the player folds
-                    players[i] = null;
+                    players[botcount] = null;
                     playerCards[botcount] = null;
-                    bets[botcount] = -1;
-                    System.out.println("Player " + botcount + " folded by invalid bet.");
+                    bets[botcount] += 0;
+                    System.out.println("Player " + botcount + " folded by invalid bet.\n");
+                    //test if the round will continue
+                    if(testPlayers()){return false;}
                 }
             }
-            botcount++;
         }
 
         //we need to test if everyon has called, and if not, we will do another betting round
         for(int i = 0; i < bets.length; i++){
             if(bets[i] < highbet && players[i] != null){
-                bettingRound();
+                bettingRound(true);
                 break;
             }
         }
@@ -248,6 +252,27 @@ public class Main {
     }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//function to test number of players
+//returns false if there are more than one player, and true if there is only one
+    public static boolean testPlayers(){
+        byte activePlayers = 0;
+        for(int i = 0; i < players.length; i++){
+            if (players[i] != null){
+                activePlayers++;
+            }
+        }
+
+        if(activePlayers > 1){
+            return false;
+        }else if (activePlayers == 1){
+            return true;
+        }else{
+            throw new IndexOutOfBoundsException("Not enough players to continue.");
+        }
+    }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //function to do a showdown
 
     public static void showdown(){
@@ -256,6 +281,8 @@ public class Main {
         for(int i = 0; i < players.length; i++){
             if (players[i] != null){
                 handStrength[i] = evalHand(playerCards[i]);
+                //DEBUG
+                System.out.println("Player " + i + " has a hand strength of " + handStrength[i]);
             }
         }
 
@@ -304,7 +331,7 @@ public class Main {
 
         //first we setup our test variables
         String[] allCards = new String[]{hand[0], hand[1], table[0], table[1], table[2], table[3], table[4]};
-        String[] flush = new String[7];
+        String[] flush = new String[]{"--", "--", "--", "--", "--"};
         byte[] pairs = new byte[]{0, 0, 0, 0};
         byte straightHigh = 0;
         char flushSuit = '-';
@@ -331,6 +358,8 @@ public class Main {
                     break;
                 case 'd': 
                     diamonds++;
+                    break;
+                default:
                     break;
             }
         }
@@ -405,20 +434,34 @@ public class Main {
             }
             //check if there are 4, 3, or 2
             if(numcard == 4){
+                //DEBUG
+                System.out.println("Found a quad");
                 quads = cardVals[i];
                 break;
             }else if(numcard == 3 && trips[0] == 0){
+                //DEBUG
+                System.out.println("Found a trip");
                 trips[0] = cardVals[i];
             }else if(numcard == 3 && trips[0] > 0 && trips[1] != cardVals[i]){
+                //DEBUG
+                System.out.println("Found another trip");
                 trips[1] = cardVals[i];
                 break;
             }else if(numcard == 2 && pairs[0] == 0){
+                //DEBUG
+                System.out.println("Found a pair");
                 pairs[0] = cardVals[i];
             }else if(numcard == 2 && pairs[0] > 0 && pairs[1] == 0){
+                //DEBUG
+                System.out.println("Found another pair");
                 pairs[1] = cardVals[i];
             }else if(numcard == 2 && pairs[1] > 0 && pairs[2] == 0){
+                //DEBUG
+                System.out.println("Found another pair");
                 pairs[2] = cardVals[i];
             }else if(numcard == 2 && pairs[2] > 0 && pairs[3] == 0){
+                //DEBUG
+                System.out.println("Found another pair");
                 pairs[3] = cardVals[i];
                 break;
             }
@@ -607,7 +650,9 @@ public class Main {
         }
 
         //the final one! high card
-        evaluation = 1000 + cardVals[cardVals.length - 1];
+        if(evaluation == 0){
+            evaluation = 1000 + cardVals[cardVals.length - 1];
+        }
 
 
         //return the result
