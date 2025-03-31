@@ -1,9 +1,6 @@
 package Main;
 
 import java.util.Arrays;
-
-import javax.smartcardio.Card;
-
 import Players.Dealer;
 import Players.Bots.BasicBot;
 import Players.Bots.ExternalPlayer;
