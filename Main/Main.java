@@ -1,7 +1,6 @@
 package Main;
 
 import java.util.Arrays;
-
 import Players.Dealer;
 import Players.Bots.BasicBot;
 import Players.Bots.ExternalPlayer;
@@ -16,13 +15,12 @@ public class Main {
     private static int BB = 20;
     private static int blindPlayer = 0;
     private static int pot = 0;
-    private static String[] table = new String[5];
+    private static String[] table = new String[]{"--", "--", "--", "--", "--"};
     private static String[][] playerCards = new String[6][2];
     private static int highbet = 0;
     private static int[] bets;
     private static int blindMod = BB/2;
     private static int bet = 0;
-    private static int botcount = 0;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -105,20 +103,21 @@ public class Main {
             }else if (players[i] == null && j >= 6){
                 throw new IllegalArgumentException("No legal players to blind. Game over.");
             }
-            bet = players[i+blindPlayer].blind(BB - blindMod);
+            bet = players[(i+blindPlayer)%players.length].blind(BB - blindMod);
+            bets[(i+blindPlayer)%players.length] = bet;
             blindMod = 0;
-            pot+=bet;
         }
         highbet = BB;
         //initial betting
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the flop and then give the player the flop cards
         table[0] = dealer.deal(1)[0];
         table[1] = dealer.deal(1)[0];
         table[2] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + "\n");
             //give the players the flop
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -128,12 +127,13 @@ public class Main {
         }
 
         //betting after flop
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the turn and then give the player the turn card
         table[3] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + "\n");
             //give the players the turn
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -143,12 +143,13 @@ public class Main {
         }
 
         //betting after turn
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
+        highbet = 0;
         updatePot();
 
         //do the river and then give the player the river card
         table[4] = dealer.deal(1)[0];
-        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4]);
+        System.out.println("Table:" + table[0] + " " + table[1] + " " + table[2] + " " + table[3] + " " + table[4] + "\n");
             //give the players the river
         for(int i = 0; i < players.length; i++){
             //check if player exists
@@ -158,7 +159,7 @@ public class Main {
         }
 
         //betting after river
-        if(!bettingRound()){return;}
+        if(!bettingRound(false)){showdown();return;}
         updatePot();
 
         //showdown
@@ -171,46 +172,48 @@ public class Main {
 
     //betting round function. returns true if the round is to continue, or false if all players but one have folded.
     //if all players fold, then an IllegalArgumentException is thrown. Does not require try catch, because it should never do that
-    public static boolean bettingRound(){
-        botcount = 0;
-        for (int i = 0; i < players.length; i++){
-            if (players[i] != null){
+    public static boolean bettingRound(boolean nest){
+        for (int botcount = 0; botcount < players.length; botcount++){
+            if (players[botcount] != null && !(bets[botcount] == highbet && nest)){
                 
                 //update the players catelog of bets
-                players[i].otherBets(bets);
+                players[botcount].otherBets(bets);
 
                 //now the bot decides its bet, and update the highbet and pot
-                bet = players[i].bet(highbet - bets[botcount]);
-                if (bet > highbet){//test if it is a raise
-                    highbet = bet;
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " raised to " + highbet);
-                }else if(bet == highbet){//test if it is a call
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " called.");
-                }else if(bet < highbet && bet > 0 && players[i].getBalance() == 0){//all in
-                    bets[botcount] = bet;
-                    players[i].blind(players[i].getBalance());//this force removes all money in the bot's balance
-                    System.out.println("Player " + botcount + " went all in.");
+                bet = players[botcount].bet(highbet - bets[botcount]);
+                if (bet > highbet - bets[botcount]){//test if it is a raise
+                    highbet = bet + bets[botcount];
+                    bets[botcount] += bet;
+                    System.out.println("Player " + botcount + " raised to " + highbet + ".\n");
+                }else if(bet == highbet - bets[botcount]){//test if it is a call
+                    bets[botcount] += bet;
+                    System.out.println("Player " + botcount + " called.\n");
+                }else if(bet < highbet - bets[botcount] && bet > 0 && players[botcount].getBalance() == 0){//all in
+                    bets[botcount] += bet;
+                    players[botcount].blind(players[botcount].getBalance());//this force removes all money in the bot's balance
+                    System.out.println("Player " + botcount + " went all in.\n");
                 }else if(bet == -1){//test if it is a fold, and remove the player
-                    players[i] = null;
+                    players[botcount] = null;
                     playerCards[botcount] = null;
-                    bets[botcount] = bet;
-                    System.out.println("Player " + botcount + " folded.");
+                    bets[botcount] += 0;
+                    System.out.println("Player " + botcount + " folded.\n");
+                    //test if the round will continue
+                    if(testPlayers()){return false;}
                 }else{//if the bet is invalid, the player folds
-                    players[i] = null;
+                    players[botcount] = null;
                     playerCards[botcount] = null;
-                    bets[botcount] = -1;
-                    System.out.println("Player " + botcount + " folded by invalid bet.");
+                    bets[botcount] += 0;
+                    System.out.println("Player " + botcount + " folded by invalid bet.\n");
+                    //test if the round will continue
+                    if(testPlayers()){return false;}
                 }
             }
-            botcount++;
         }
 
         //we need to test if everyon has called, and if not, we will do another betting round
         for(int i = 0; i < bets.length; i++){
             if(bets[i] < highbet && players[i] != null){
-                bettingRound();
+                bettingRound(true);
                 break;
             }
         }
@@ -248,6 +251,27 @@ public class Main {
     }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//function to test number of players
+//returns false if there are more than one player, and true if there is only one
+    public static boolean testPlayers(){
+        byte activePlayers = 0;
+        for(int i = 0; i < players.length; i++){
+            if (players[i] != null){
+                activePlayers++;
+            }
+        }
+
+        if(activePlayers > 1){
+            return false;
+        }else if (activePlayers == 1){
+            return true;
+        }else{
+            throw new IndexOutOfBoundsException("Not enough players to continue.");
+        }
+    }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //function to do a showdown
 
     public static void showdown(){
@@ -256,6 +280,8 @@ public class Main {
         for(int i = 0; i < players.length; i++){
             if (players[i] != null){
                 handStrength[i] = evalHand(playerCards[i]);
+                //DEBUG
+                System.out.println("Player " + i + " has a hand strength of " + handStrength[i]);
             }
         }
 
@@ -304,7 +330,7 @@ public class Main {
 
         //first we setup our test variables
         String[] allCards = new String[]{hand[0], hand[1], table[0], table[1], table[2], table[3], table[4]};
-        String[] flush = new String[7];
+        String[] flush = new String[]{"--", "--", "--", "--", "--", "--", "--"};
         byte[] pairs = new byte[]{0, 0, 0, 0};
         byte straightHigh = 0;
         char flushSuit = '-';
@@ -331,6 +357,8 @@ public class Main {
                     break;
                 case 'd': 
                     diamonds++;
+                    break;
+                default:
                     break;
             }
         }
@@ -379,15 +407,18 @@ public class Main {
 
         Arrays.sort(cardVals);
 
-        int straightLen = 0;
+        int straightLen = 1;
 
         //checks for a straight
+        //DEBUG
         for(int i = 1; i < cardVals.length; i++) {
             if(cardVals[i-1] + 1 == cardVals[i] && straightLen < 5){
                 straightLen++;
                 straightHigh = cardVals[i];
+            }else if(cardVals[i-1] == cardVals[i] && straightLen < 5){
+                //do nothing
             }else if(straightLen < 5){
-                straightLen = 0;
+                straightLen = 1;
                 straightHigh = 0;
             }
 
@@ -405,20 +436,34 @@ public class Main {
             }
             //check if there are 4, 3, or 2
             if(numcard == 4){
+                //DEBUG
+                //System.out.println("Found a quad" + cardVals[i]);
                 quads = cardVals[i];
                 break;
             }else if(numcard == 3 && trips[0] == 0){
+                //DEBUG
+                //System.out.println("Found a trip" + cardVals[i]);
                 trips[0] = cardVals[i];
-            }else if(numcard == 3 && trips[0] > 0 && trips[1] != cardVals[i]){
+            }else if(numcard == 3 && trips[0] > 0 && trips[0] != cardVals[i]){
+                //DEBUG
+                //System.out.println("Found another trip" + cardVals[i]);
                 trips[1] = cardVals[i];
                 break;
             }else if(numcard == 2 && pairs[0] == 0){
+                //DEBUG
+                //System.out.println("Found a pair" + cardVals[i]);
                 pairs[0] = cardVals[i];
-            }else if(numcard == 2 && pairs[0] > 0 && pairs[1] == 0){
+            }else if(numcard == 2 && pairs[0] > 0 && pairs[1] == 0 && cardVals[i] != pairs[0]){
+                //DEBUG
+                //System.out.println("Found another pair" + cardVals[i]);
                 pairs[1] = cardVals[i];
-            }else if(numcard == 2 && pairs[1] > 0 && pairs[2] == 0){
+            }else if(numcard == 2 && pairs[1] > 0 && pairs[2] == 0 && cardVals[i] != pairs[1]){
+                //DEBUG
+                //System.out.println("Found another pair" + cardVals[i]);
                 pairs[2] = cardVals[i];
-            }else if(numcard == 2 && pairs[2] > 0 && pairs[3] == 0){
+            }else if(numcard == 2 && pairs[2] > 0 && pairs[3] == 0 && cardVals[i] != pairs[2]){
+                //DEBUG
+                //System.out.println("Found another pair" + cardVals[i]);
                 pairs[3] = cardVals[i];
                 break;
             }
@@ -459,9 +504,9 @@ public class Main {
             byte fstraithigh = 0;
 
             //now we check for the flush straight
-            for(int i = 0; i < flushCardVals.length; i++){
+            for(int i = 1; i < flushCardVals.length; i++){
                 
-                if(flushCardVals[i-1] + 1 == flushCardVals[i] && straightLen < 5){
+                if(flushCardVals[i - 1] + 1 == flushCardVals[i] && straightLen < 5){
                     straightLen++;
                     fstraithigh = cardVals[i];
                 }else if(straightLen < 5){
@@ -474,7 +519,7 @@ public class Main {
             }
 
             if(fstraithigh != 0){
-                evaluation = 9000 + ((fstraithigh - 1) * 100);
+                evaluation = 90000 + ((fstraithigh - 1) * 100);
                 return evaluation;
             }
         }
@@ -483,7 +528,7 @@ public class Main {
         if(quads != 0){
             for(int i = cardVals.length - 1; i >= 0; i--){
                 if(cardVals[i] != quads){
-                    evaluation = 8000 + (quads * 100) + (cardVals[i]);
+                    evaluation = 80000 + (quads * 100) + (cardVals[i]);
                     break;
                 }
             }
@@ -503,60 +548,63 @@ public class Main {
             }
 
             //do the eval
-            evaluation = 7000 + (highTrip * 100) + highPair;
+            evaluation = 70000 + (highTrip * 100) + highPair;
             return evaluation;
         }
 
         //now we check for flush
         if(flushSuit != '-'){
+
             // get the highest card in the flush, then second high
-            byte high = 0;
-            byte secondHigh = 0;
-            for(int i = flush.length - 1; i >= 0; i--){
-                if(flush[i] != null){
+            int high = 0;
+            int secondHigh = 0;
+            for(int i = 0; i < flush.length; i++){
+                if(flush[i] != "--"){
                     //get the flush card value
                     switch(flush[i].charAt(0)){
-                        case '2': high = 1; break;
-                        case '3': high = 2; break;
-                        case '4': high = 3; break;
-                        case '5': high = 4; break;
-                        case '6': high = 5; break;
-                        case '7': high = 6; break;
-                        case '8': high = 7; break;
-                        case '9': high = 8; break;
-                        case 'T': high = 9; break;
-                        case 'J': high = 10; break;
-                        case 'Q': high = 11; break;
-                        case 'K': high = 12; break;
-                        case 'A': high = 13; break;
+                        case '2': high = high < 1 ? 1 : high; break;
+                        case '3': high = high < 2 ? 2 : high; break;
+                        case '4': high = high < 3 ? 3 : high; break;
+                        case '5': high = high < 4 ? 4 : high; break;
+                        case '6': high = high < 5 ? 5 : high; break;
+                        case '7': high = high < 6 ? 6 : high; break;
+                        case '8': high = high < 7 ? 7 : high; break;
+                        case '9': high = high < 8 ? 8 : high; break;
+                        case 'T': high = high < 9 ? 9 : high; break;
+                        case 'J': high = high < 10 ? 10 : high; break;
+                        case 'Q': high = high < 11 ? 11 : high; break;
+                        case 'K': high = high < 12 ? 12 : high; break;
+                        case 'A': high = high < 13 ? 13 : high; break;
                     }
 
                     //get the second highest flush card value
-                    switch(flush[i - 1].charAt(0)){
-                        case '2': secondHigh = 1; break;
-                        case '3': secondHigh = 2; break;
-                        case '4': secondHigh = 3; break;
-                        case '5': secondHigh = 4; break;
-                        case '6': secondHigh = 5; break;
-                        case '7': secondHigh = 6; break;
-                        case '8': secondHigh = 7; break;
-                        case '9': secondHigh = 8; break;
-                        case 'T': secondHigh = 9; break;
-                        case 'J': secondHigh = 10; break;
-                        case 'Q': secondHigh = 11; break;
-                        case 'K': secondHigh = 12; break;
+                    if(i != 0){
+                        switch(flush[i - 1].charAt(0)){
+                            case '2': secondHigh = secondHigh < 1 && high > 1 ? 1 : secondHigh; break;
+                            case '3': secondHigh = secondHigh < 2 && high > 2 ? 2 : secondHigh; break;
+                            case '4': secondHigh = secondHigh < 3 && high > 3 ? 3 : secondHigh; break;
+                            case '5': secondHigh = secondHigh < 4 && high > 4 ? 4 : secondHigh; break;
+                            case '6': secondHigh = secondHigh < 5 && high > 5 ? 5 : secondHigh; break;
+                            case '7': secondHigh = secondHigh < 6 && high > 6 ? 6 : secondHigh; break;
+                            case '8': secondHigh = secondHigh < 7 && high > 7 ? 7 : secondHigh; break;
+                            case '9': secondHigh = secondHigh < 8 && high > 8 ? 8 : secondHigh; break;
+                            case 'T': secondHigh = secondHigh < 9 && high > 9 ? 9 : secondHigh; break;
+                            case 'J': secondHigh = secondHigh < 10 && high > 10 ? 10 : secondHigh; break;
+                            case 'Q': secondHigh = secondHigh < 11 && high > 11 ? 11 : secondHigh; break;
+                            case 'K': secondHigh = secondHigh < 12 && high > 12 ? 12 : secondHigh; break;
+                            case 'A': secondHigh = secondHigh < 13 && high > 13 ? 13 : secondHigh; break;
+                        }
                     }
-
-                    evaluation = 6000 + (high * 100) + secondHigh;
-                    break;
                 }
             }
+
+            evaluation = 60000 + (high * 100) + secondHigh;
             return evaluation;
         }
 
         //now we check for straight
         if(straightLen == 5){
-            evaluation = 5000 + (straightHigh * 100);
+            evaluation = 50000 + (straightHigh * 100);
             return evaluation;
         }
 
@@ -569,11 +617,11 @@ public class Main {
                 t = t > trips[i] ? t : trips[i];
             }
             //get kicker
-            for(int i = cardVals.length - 1; i > 0; i--){
-                h = (cardVals[i] == t) && (h == 0) ? 0 : cardVals[i];
+            for(int i = 0; i < cardVals.length; i++){
+                h = (cardVals[i] == t) || (cardVals[i] <= h) ? h : cardVals[i];
             }
             //eval time
-            evaluation = 4000 + (t * 100) + h;
+            evaluation = 40000 + (t * 100) + h;
             return evaluation;
         }
 
@@ -583,15 +631,15 @@ public class Main {
             byte s = 0;
             //get highest pair
             for(int i = pairs.length - 1; i >= 0; i--){
-                h = h > pairs[i] ? h : pairs[i];
+                h = h >= pairs[i] ? h : pairs[i];
             }
             //get second highest pair
             for(int i = pairs.length - 1; i >= 0; i--){
-                s = (s > pairs[i]) && (pairs[i] < h) ? s : pairs[i];
+                s = s >= pairs[i] || pairs[i] >= h ? s : pairs[i];
             }
 
             //eval time
-            evaluation = 3000 + (h * 100) + s;
+            evaluation = 30000 + (h * 100) + s;
             return evaluation;
         }
 
@@ -603,11 +651,13 @@ public class Main {
                 k = (cardVals[i] != pairs[0]) && (cardVals[i] > k) ? cardVals[i] : k;
             }
             //evaluation
-            evaluation = 2000 + (pairs[0] * 100) + k;
+            evaluation = 20000 + (pairs[0] * 100) + k;
         }
 
         //the final one! high card
-        evaluation = 1000 + cardVals[cardVals.length - 1];
+        if(evaluation == 0){
+            evaluation = 10000 + cardVals[cardVals.length - 1];
+        }
 
 
         //return the result
