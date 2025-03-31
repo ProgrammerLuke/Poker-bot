@@ -26,6 +26,17 @@ public class Dealer {
     //method to shuffle the cards
     public void shuffle(){
         Collections.shuffle(cards);
+        //stacking the deck for testing happens down here
+        // cards = new ArrayList<String>();
+        // cards.add(0, "As");
+        // cards.add(0, "Ah");
+        // cards.add(0, "Kc");
+        // cards.add(0, "Qh");
+        // cards.add(0, "3d");
+        // cards.add(0, "8s");
+        // cards.add(0, "8c");
+        // cards.add(0, "4d");
+        // cards.add(0, "2s");
     }
 
     //method to get the cards
