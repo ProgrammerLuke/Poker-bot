@@ -82,8 +82,11 @@ public class ExternalPlayer extends BasicBot{
     }
 
     @Override
-    public void givePlayerCards(String[] cards, int player) {
-        //TODO: Do this here and implement in the Main program
+    public void givePlayerCards(String[][] otherCards, int thisPlayer) {
+        for(int i = 0; i < otherCards.length; i++){
+            if(i == thisPlayer){continue;}
+            System.out.println("Player " + i + "had: " + otherCards[i][0] + " " + otherCards[i][1]);
+        }
     }
 
     @Override

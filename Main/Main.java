@@ -165,6 +165,14 @@ public class Main {
         //showdown
         showdown();
 
+        // give the players the other players cards
+        for(int i = 0; i < players.length; i++){
+            //check if player exists
+            if (players[i] != null){
+                players[i].givePlayerCards(playerCards, i);
+            }
+        }
+
 
     }
 
@@ -281,7 +289,7 @@ public class Main {
             if (players[i] != null){
                 handStrength[i] = evalHand(playerCards[i]);
                 //DEBUG
-                System.out.println("Player " + i + " has a hand strength of " + handStrength[i]);
+                //System.out.println("Player " + i + " has a hand strength of " + handStrength[i]);
             }
         }
 

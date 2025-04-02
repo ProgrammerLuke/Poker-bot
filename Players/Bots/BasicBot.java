@@ -4,7 +4,7 @@ public abstract class BasicBot {
     //input methods
     public abstract void givePlayers(int numPlayers); //not necessary
     public abstract void giveHand(String[] hand);//gives the player his hand
-    public abstract void givePlayerCards(String[] cards, int player);//gives the player another players cards
+    public abstract void givePlayerCards(String[][] otherCards, int thisPlayer);//gives the player another players cards
     public abstract void giveFlop(String[] flop);//gives the player the flop
     public abstract void giveTurn(String turn);//gives the player the turn
     public abstract void giveRiver(String river);//gives the player the river
