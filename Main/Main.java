@@ -74,7 +74,7 @@ public class Main {
 
 
     //newgame function
-    public static void newGame(){
+    private static void newGame(){
         //reset variables
         blindMod = BB/2;
         pot = 0;
@@ -108,6 +108,7 @@ public class Main {
             blindMod = 0;
         }
         highbet = BB;
+        bet = 0;
         //initial betting
         if(!bettingRound(false)){showdown();return;}
         highbet = 0;
@@ -180,7 +181,7 @@ public class Main {
 
     //betting round function. returns true if the round is to continue, or false if all players but one have folded.
     //if all players fold, then an IllegalArgumentException is thrown. Does not require try catch, because it should never do that
-    public static boolean bettingRound(boolean nest){
+    private static boolean bettingRound(boolean nest){
         for (int botcount = 0; botcount < players.length; botcount++){
             if (players[botcount] != null && !(bets[botcount] == highbet && nest)){
                 
@@ -247,7 +248,7 @@ public class Main {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //function to update the pot
-    public static void updatePot(){
+    private static void updatePot(){
         //do this for each bet
         for(int i = 0; i < bets.length; i++){
             //make sure the bet exists
@@ -262,7 +263,7 @@ public class Main {
 
 //function to test number of players
 //returns false if there are more than one player, and true if there is only one
-    public static boolean testPlayers(){
+    private static boolean testPlayers(){
         byte activePlayers = 0;
         for(int i = 0; i < players.length; i++){
             if (players[i] != null){
@@ -282,7 +283,7 @@ public class Main {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //function to do a showdown
 
-    public static void showdown(){
+    private static void showdown(){
         int[] handStrength = new int[players.length];
         //get each players hand strength
         for(int i = 0; i < players.length; i++){
@@ -323,7 +324,7 @@ public class Main {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //this will find the strength of each hand, and the strength of the variation of the hand.
-    public static int evalHand(String[] hand){
+    private static int evalHand(String[] hand){
         /*
          *We can reduce each hand to a few types. flush, stright, straight flush, and ___ of a kind / full house.
          *We can modify a value to fit each of these and store how many of each kind are in the hand.
