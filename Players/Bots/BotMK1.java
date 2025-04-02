@@ -1,5 +1,7 @@
 package Players.Bots;
 
+import java.util.ArrayList;
+
 public class BotMK1 extends BasicBot{
 
     //variables
@@ -7,6 +9,29 @@ public class BotMK1 extends BasicBot{
     private String[] allCards = new String[7];
     private int numPlayers = 0;
     private int[] bets = new int[] {-2, -2, -2, -2, -2, -2};
+
+    ArrayList<String> myCards = new ArrayList<String>();
+
+    //record previous bets
+    ArrayList<Integer> myBets = new ArrayList<Integer>();
+
+
+
+    //style constants
+    private final int aggressive = 0;
+    private final int passive = 1;
+    private final int conservative = 2;
+    private final int bluff = 3;
+
+    private int style = conservative;
+
+    //hand based variables
+    private int handStrength = 0;
+    private int[] opponentEstimatedStrength = new int[] {0, 0, 0, 0, 0, 0};
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //this section is for gameplay functions inherited from basicbot
 
     //simply gives the player the number of players
     @Override
@@ -112,5 +137,34 @@ public class BotMK1 extends BasicBot{
     @Override
     public String[] getCards() {
         return new String[]{allCards[0], allCards[1]};
+    }
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //the functions in this section are used to determine hand strength and decide a bet
+    //based on that, other bots' bets, round, and style
+
+    private int updateStyle(){
+        int lostEstimate = 0;
+
+        for(int i = 0; i < opponentEstimatedStrength.length; i++){
+            if(opponentEstimatedStrength[i] > handStrength){
+                lostEstimate++;
+            }
+        }
+        //these are the senarios to change styles so far
+        if(style == aggressive && lostEstimate >= (int)(numPlayers/2 + .5)){
+            return bluff;
+        }else if(style == passive && lostEstimate <= (int)(numPlayers/2 + .5)){
+            return conservative;
+        }else if(style == conservative && lostEstimate >= (int)(numPlayers/2 + .5)){
+            return passive;
+        }else if(style == bluff && lostEstimate <= (int)(numPlayers/2 + .5)){
+            return aggressive;
+        }else if(style == bluff && lostEstimate == numPlayers){
+            return passive;
+        }else{
+            return style;
+        }
     }
 }

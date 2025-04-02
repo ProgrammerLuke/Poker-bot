@@ -15,7 +15,7 @@ public class ExternalPlayer extends BasicBot{
     @Override
     public int bet(int call) {
         //get input for the bet
-        System.out.println("Enter your bet (C to see all cards, B to see other players bets, and M to see your balance)\n" + call + " to call:  ");
+        System.out.println("Enter your bet (C to see all cards, B to see other players bets, and M to see your balance)\n-1 to fold, or " + call + " to call:  ");
         String bet = input.nextLine();
         int betAmount = 0;
         //convert the input to an integer, or give the requested data, then sets betAmount to bet(int call) through recursion.
@@ -45,8 +45,8 @@ public class ExternalPlayer extends BasicBot{
             
         }
         //check the validity of the bet
-        if(betAmount >= call || betAmount == balance || betAmount == -1){
-            return betAmount;
+        if((betAmount >= call && betAmount <= balance) || betAmount == balance || betAmount == -1){
+            //do nothing
         }else if(betAmount < call){
             System.out.println("You must bet at least " + call + " or your balance.");
             betAmount = bet(call);
@@ -83,9 +83,10 @@ public class ExternalPlayer extends BasicBot{
 
     @Override
     public void givePlayerCards(String[][] otherCards, int thisPlayer) {
+        System.out.println();
         for(int i = 0; i < otherCards.length; i++){
             if(i == thisPlayer){continue;}
-            System.out.println("Player " + i + "had: " + otherCards[i][0] + " " + otherCards[i][1]);
+            System.out.println("Player " + i + " had: " + otherCards[i][0] + " " + otherCards[i][1]);
         }
     }
 

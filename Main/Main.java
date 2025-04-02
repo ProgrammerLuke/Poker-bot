@@ -50,6 +50,9 @@ public class Main {
             dealer.shuffle();
             System.out.println("\n\n\nBeginning New Game.....\n\n\n");
             newGame();
+
+            //Rplayers = players.clone();
+
             //update players list
             for(int i = 0; i < Rplayers.length; i++){
                 if(Rplayers[i] != null && Rplayers[i].getBalance() <= 0){Rplayers[i] = null;}
