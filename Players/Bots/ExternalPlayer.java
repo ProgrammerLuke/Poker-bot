@@ -145,4 +145,7 @@ public class ExternalPlayer extends BasicBot{
         // returns the players balance
         return balance;
     }
+
+    @Override
+    public void finish() {}
 }

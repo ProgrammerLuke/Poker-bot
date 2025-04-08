@@ -56,6 +56,9 @@ public class Main {
             //update players list
             for(int i = 0; i < Rplayers.length; i++){
                 if(Rplayers[i] != null && Rplayers[i].getBalance() <= 0){Rplayers[i] = null;}
+                else{
+                    Rplayers[i].finish();
+                }
             }
         }
 
@@ -193,14 +196,14 @@ public class Main {
 
                 //now the bot decides its bet, and update the highbet and pot
                 bet = players[botcount].bet(highbet - bets[botcount]);
-                if (bet > highbet - bets[botcount]){//test if it is a raise
+                if (bet > highbet - bets[botcount] && bet <= players[botcount].getBalance()){//test if it is a raise
                     highbet = bet + bets[botcount];
                     bets[botcount] += bet;
                     System.out.println("Player " + botcount + " raised to " + highbet + ".\n");
-                }else if(bet == highbet - bets[botcount]){//test if it is a call
+                }else if(bet == highbet - bets[botcount] && bet < players[botcount].getBalance()){//test if it is a call
                     bets[botcount] += bet;
                     System.out.println("Player " + botcount + " called.\n");
-                }else if(bet < highbet - bets[botcount] && bet > 0 && players[botcount].getBalance() == 0){//all in
+                }else if(bet < highbet - bets[botcount] && players[botcount].getBalance() == 0){//all in
                     bets[botcount] += bet;
                     players[botcount].blind(players[botcount].getBalance());//this force removes all money in the bot's balance
                     System.out.println("Player " + botcount + " went all in.\n");

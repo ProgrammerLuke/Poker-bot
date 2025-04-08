@@ -15,4 +15,6 @@ public abstract class BasicBot {
     public abstract int bet(int call);//function used to askt the bot to bet. fold is denoted as -1, check is denoted as 0
     public abstract int getBalance();//returns the players total balance. This is kept track of inside the bot, but an honor system will be necessary for keeping track of that
     public abstract String[] getCards();//returns the players cards. This will also be kept track of outside the bot, so no cheating or you are disqualified
+    //update methods
+    public abstract void finish();//allows end of round updates
 }

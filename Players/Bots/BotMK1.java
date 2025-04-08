@@ -12,8 +12,13 @@ public class BotMK1 extends BasicBot{
 
     ArrayList<String> myCards = new ArrayList<String>();
 
-    //record previous bets
-    ArrayList<Integer> myBets = new ArrayList<Integer>();
+    //record bets from this round
+    ArrayList<Integer> thisRoundBets;
+    ArrayList<Integer> myBets;
+
+    //record bets from previous rounds
+    ArrayList<ArrayList<Integer>> myPrevBets = new ArrayList<ArrayList<Integer>>();
+    ArrayList<ArrayList<Integer>> otherPrevBets = new ArrayList<ArrayList<Integer>>();
 
 
 
@@ -28,6 +33,14 @@ public class BotMK1 extends BasicBot{
     //hand based variables
     private int handStrength = 0;
     private int[] opponentEstimatedStrength = new int[] {0, 0, 0, 0, 0, 0};
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    //constructor
+    public BotMK1() {
+        myBets = new ArrayList<Integer>();
+        thisRoundBets = new ArrayList<Integer>();
+    }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -137,6 +150,13 @@ public class BotMK1 extends BasicBot{
     @Override
     public String[] getCards() {
         return new String[]{allCards[0], allCards[1]};
+    }
+
+    //end of round function
+    @Override
+    public void finish() {
+        // TODO
+        
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
